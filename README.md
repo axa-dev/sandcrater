@@ -12,10 +12,10 @@ Considerations:
 - By example, `src/sc_something.c` will include `sc.h` and will have
   a Lua counterpart named `tests/sc_something.lua` and the module
   required under Lua as `require("sc.something")`
-- To compile and test, simply run `./luatest test`
-- To clean the tree, simply run `./luatest clean`
+- To compile and test, simply run `./run test`
+- To clean the tree, simply run `./run clean`
 
-It is recommended to have `sparse` installed and run `./luatest sparse`
+It is recommended to have `sparse` installed and run `./run sparse`
 
 
 ## Intentions

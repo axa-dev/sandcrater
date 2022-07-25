@@ -5,13 +5,15 @@ local luaVersions = {"5.1","5.2","5.3","5.4"}
 local sepline = "*******************************"
 local sepline2= "-------------------------------"
 
-function compile(luaver)
+
+function test_compile(luaver)
   print(("Compiling for Lua %s"):format(luaver))
   print(sepline)
   make.exec("LUAROCKS_CONFIG=./assets/devconf.lua luarocks --tree ./out --lua-version %s build",luaver)
 end
 
-function testunit(luaver)
+
+function test_lua(luaver)
   local lbin  = ("lua%s"):format(luaver)
   local lpath = ("./out/lib/lua/%s/?.lua"):format(luaver)
   local cpath = ("./out/lib/lua/%s/?.so" ):format(luaver)
@@ -35,23 +37,50 @@ function testunit(luaver)
   end
 end
 
-function clean()
+
+
+--
+-- Actions
+--
+local actions = {}
+
+
+function actions.clean()
   make.exec("rm -rf ./out src/*.o src/*/*.o sc")
 end
 
-function test()
+
+function actions.test()
   for i,luaver in ipairs(luaVersions) do
     if (i % 2) == 0 then print "\27[37;40m\n" else print "\27[37;0m\n" end
-    compile(luaver)
-    testunit(luaver)
+    test_compile(luaver)
+    test_lua(luaver)
   end
   print("\27[0m")
 end
 
-make.run{
-  clean   = clean,
-  test    = test
-}
+
+function actions.sparse()
+  local cmd = table.concat {
+    [[ sparse -Wsparse-error ]],
+    [[ -Wno-declaration-after-statement ]],
+    [[ -Wsparse-all ]],
+    [[ -I/usr/include/lua%s ]],
+    [[ -I./src ]],
+    [[ -I./src/lib ]],
+    [[ src/*c 2>&1 | grep -v "unknown attribute\|note: in included file" | tee /dev/stderr | wc -l ]]
+  }
+  print("\nRunning sparse")
+  print(sepline)
+  for _,luaver in ipairs(luaVersions) do
+    print (("\n - Targeting C for Lua %s"):format(luaver))
+    if (make.rexec(cmd:format(luaver)))[1] ~= "0" then
+      os.exit(1)
+    end
+  end
+  print("")
+  print(sepline,"\nSparsed OK! :)\n")
+end
 
 
-
+make.run(actions)

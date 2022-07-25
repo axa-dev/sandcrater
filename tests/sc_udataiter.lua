@@ -11,14 +11,9 @@
 ||                                               ||
 --]===============================================]
 
-local scui = require("sc.udatait")
+local scui = require("sc.udataiter")
 
-local x = scui.ls("/*")
-
-assert( type(x:read()) == "string" )
-assert( type(x:read()) == "string" )
-assert( x:close() == nil )
-
-res,err = pcall(x.read,x)
-assert( res == false )
-assert( err == "Cannot read closed path")
+for i,v in scui.ls("/*") do
+  assert(type(i) == "number")
+  assert(type(v) == "string")
+end

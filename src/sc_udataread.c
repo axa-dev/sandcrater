@@ -104,7 +104,7 @@ static const luaL_Reg ls_udata_functions[] = {
 };
 
 
-int luaopen_sc_udatait(lua_State *L) {
+int luaopen_sc_udataread(lua_State *L) {
   /* PART 2 - Add the metatable */
   luaL_newmetatable(L,"ls_udata");
   lua_pushvalue(L,-1);

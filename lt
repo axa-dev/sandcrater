@@ -1,0 +1,57 @@
+#!/bin/env lua
+
+local make = require('assets.make')
+local luaVersions = {"5.1","5.2","5.3","5.4"}
+local sepline = "*******************************"
+local sepline2= "-------------------------------"
+
+function compile(luaver)
+  print(("Compiling for Lua %s"):format(luaver))
+  print(sepline)
+  make.exec("LUAROCKS_CONFIG=./assets/devconf.lua luarocks --tree ./out --lua-version %s build",luaver)
+end
+
+function testunit(luaver)
+  local lbin  = ("lua%s"):format(luaver)
+  local lpath = ("./out/lib/lua/%s/?.lua"):format(luaver)
+  local cpath = ("./out/lib/lua/%s/?.so" ):format(luaver)
+
+  local p = io.popen("ls tests/*.lua 2> /dev/null","r")
+  if p == nil then return end
+
+  print(("\nTesting with Lua %s"):format(luaver))
+  print(sepline)
+  testnum = 0
+  local file = p:read()
+  while file do
+    testnum = testnum + 1
+    print(("\n %d | %s "):format(testnum, file))
+    print(sepline2)
+    make.exec(
+      [[ %s -e 'package.path=%q package.cpath=%q' %q ]],
+      lbin, lpath, cpath, file
+    )
+    file = p:read()
+  end
+end
+
+function clean()
+  make.exec("rm -rf ./out src/*.o src/*/*.o sc")
+end
+
+function test()
+  for i,luaver in ipairs(luaVersions) do
+    if (i % 2) == 0 then print "\27[37;40m\n" else print "\27[37;0m\n" end
+    compile(luaver)
+    testunit(luaver)
+  end
+  print("\27[0m")
+end
+
+make.run{
+  clean   = clean,
+  test    = test
+}
+
+
+
